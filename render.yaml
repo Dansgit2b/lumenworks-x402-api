@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: lumenworks-x402-decoder
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PUBLIC_BASE
+        value: https://lumenworks-x402-decoder.onrender.com
