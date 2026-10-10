@@ -1,4 +1,4 @@
-/** Lumen Works free-public-data wrappers: PubMed (NCBI E-utilities), arXiv, SEC EDGAR, Open-Meteo, Polymarket (read-only Gamma API). No keys, no paid upstreams. */
+/** Lumen Works free-public-data wrappers: PubMed (NCBI E-utilities), arXiv, SEC EDGAR, Open-Meteo (MET Norway + Nominatim fallback), Polymarket (read-only Gamma API). No keys, no paid upstreams. */
 const bad = (m, status = 400) => Object.assign(new Error(m), { status });
 const UA = "LumenWorks-API/1.0 lumenworks-x402-decoder.onrender.com";
 const get = async (url, { json = true, headers = {} } = {}) => {
@@ -49,14 +49,42 @@ export async function secFilings(input) {
   return { cik: pad, name: s.name || name, ticker: ticker || s.tickers?.[0] || null, sic: s.sic, sicDescription: s.sicDescription, stateOfIncorporation: s.stateOfIncorporation, fiscalYearEnd: s.fiscalYearEnd, filings, latestAnnualFacts: facts, source: "SEC EDGAR (data.sec.gov)" };
 }
 
+const CONTACT_UA = process.env.WEATHER_USER_AGENT || "LumenWorks-API/1.3 (+https://github.com/Dansgit2b/lumenworks-x402-api)";
+let nomLast = 0; const nomQueue = { p: Promise.resolve() };
+// Nominatim usage policy: max 1 req/s, identifying UA, cache results. Serialized + 24h cache.
+const nominatim = (q) => (nomQueue.p = nomQueue.p.catch(() => {}).then(async () => { const w = 1100 - (Date.now() - nomLast); if (w > 0) await new Promise((r) => setTimeout(r, w)); nomLast = Date.now(); return get(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=jsonv2&limit=1&addressdetails=1`, { headers: { "user-agent": CONTACT_UA, "accept-language": "en" } }); }));
+async function geocode(q) {
+  return cached(`geo:${q.toLowerCase()}`, 864e5, async () => {
+    try { const g = await get(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1&format=json`); const h = g.results?.[0]; if (h) return { latitude: h.latitude, longitude: h.longitude, name: h.name, country: h.country, admin1: h.admin1, timezone: h.timezone, geocoder: "open-meteo" }; } catch {}
+    const n = (await nominatim(q))?.[0]; if (!n) throw bad("Location not found", 404);
+    const ad = n.address || {}; return { latitude: +n.lat, longitude: +n.lon, name: n.name || n.display_name, country: ad.country, admin1: ad.state, timezone: null, geocoder: "nominatim (© OpenStreetMap contributors, ODbL)" };
+  });
+}
+const WMO_FROM_MET = (s = "") => { s = s.replace(/_(day|night|polartwilight)$/, ""); if (/thunder/.test(s)) return 95; if (/snow/.test(s)) return /heavy/.test(s) ? 75 : /light/.test(s) ? 71 : 73; if (/sleet/.test(s)) return 68; if (/rain/.test(s)) return /heavy/.test(s) ? 65 : /light/.test(s) ? 61 : 63; if (s === "fog") return 45; if (s === "cloudy") return 3; if (s === "partlycloudy") return 2; if (s === "fair") return 1; if (s === "clearsky") return 0; return null; };
+async function metNorway(lat, lon, days, imperial) {
+  const j = await get(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`, { headers: { "user-agent": CONTACT_UA } });
+  const ts = j.properties?.timeseries || []; if (!ts.length) throw bad("No forecast data", 502);
+  const cv = (c) => (imperial ? Math.round((c * 9 / 5 + 32) * 10) / 10 : c), ws = (m) => (imperial ? Math.round(m * 2.23694 * 10) / 10 : Math.round(m * 3.6 * 10) / 10), pr = (mm) => (imperial ? Math.round(mm / 25.4 * 100) / 100 : mm);
+  const c0 = ts[0].data.instant.details, n1 = ts[0].data.next_1_hours || ts[0].data.next_6_hours;
+  const byDay = new Map(); for (const t of ts) { const d = t.time.slice(0, 10), x = t.data.instant.details; const e = byDay.get(d) || { t: [], w: [], p: 0, codes: [] }; e.t.push(x.air_temperature); e.w.push(x.wind_speed); if (t.data.next_1_hours) e.p += t.data.next_1_hours.details?.precipitation_amount || 0; else if (t.data.next_6_hours && !e.h6) e.p += t.data.next_6_hours.details?.precipitation_amount || 0; const sym = (t.data.next_6_hours || t.data.next_1_hours)?.summary?.symbol_code; if (sym && t.time.slice(11, 13) >= "06" && t.time.slice(11, 13) <= "18") e.codes.push(WMO_FROM_MET(sym)); byDay.set(d, e); }
+  const daily = [...byDay.entries()].slice(0, days).map(([date, e]) => ({ date, weatherCode: e.codes.length ? Math.max(...e.codes.filter((c) => c !== null), 0) : null, tMax: cv(Math.max(...e.t)), tMin: cv(Math.min(...e.t)), precipSum: pr(Math.round(e.p * 10) / 10), precipProbMax: null, windMax: ws(Math.max(...e.w)), uvMax: null, sunrise: null, sunset: null }));
+  return { latitude: lat, longitude: lon, timezone: "UTC", units: { temperature_2m: imperial ? "°F" : "°C", wind_speed_10m: imperial ? "mph" : "km/h", precipitation: imperial ? "inch" : "mm", time: "iso8601 UTC" }, current: { time: ts[0].time, temperature_2m: cv(c0.air_temperature), relative_humidity_2m: c0.relative_humidity, wind_speed_10m: ws(c0.wind_speed), wind_direction_10m: c0.wind_from_direction, precipitation: pr(n1?.details?.precipitation_amount ?? null), weather_code: WMO_FROM_MET(n1?.summary?.symbol_code) }, daily, source: "MET Norway Locationforecast 2.0 (CC BY 4.0, fallback; dates in UTC, up to ~10 days)" };
+}
 export async function weather(input) {
   let { latitude: lat, longitude: lon } = input || {}; let place = null;
-  if (lat === undefined || lon === undefined) { const q = String(input?.location || input?.city || "").trim(); if (!q) throw bad("Provide {location} or {latitude, longitude}"); const g = await cached(`geo:${q.toLowerCase()}`, 864e5, () => get(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1&format=json`)); const h = g.results?.[0]; if (!h) throw bad("Location not found", 404); lat = h.latitude; lon = h.longitude; place = { name: h.name, country: h.country, admin1: h.admin1, timezone: h.timezone }; }
+  if (lat === undefined || lon === undefined) { const q = String(input?.location || input?.city || "").trim(); if (!q) throw bad("Provide {location} or {latitude, longitude}"); const h = await geocode(q); lat = h.latitude; lon = h.longitude; place = { name: h.name, country: h.country, admin1: h.admin1, timezone: h.timezone, geocoder: h.geocoder }; }
+  lat = +lat; lon = +lon;
   if (!(Math.abs(lat) <= 90 && Math.abs(lon) <= 180)) throw bad("Invalid coordinates");
-  const days = lim(input?.days, 7, 16), units = input?.units === "imperial" ? "&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch" : "";
-  const w = await cached(`wx:${(+lat).toFixed(2)},${(+lon).toFixed(2)}:${days}:${units}`, 600_000, () => get(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=${days}${units}`));
-  const d = w.daily || {};
-  return { place, latitude: w.latitude, longitude: w.longitude, timezone: w.timezone, units: { ...w.current_units }, current: w.current, daily: (d.time || []).map((t, i) => ({ date: t, weatherCode: d.weather_code[i], tMax: d.temperature_2m_max[i], tMin: d.temperature_2m_min[i], precipSum: d.precipitation_sum[i], precipProbMax: d.precipitation_probability_max?.[i], windMax: d.wind_speed_10m_max[i], uvMax: d.uv_index_max?.[i], sunrise: d.sunrise[i], sunset: d.sunset[i] })), source: "Open-Meteo (CC BY 4.0)" };
+  const days = lim(input?.days, 7, 16), imperial = input?.units === "imperial", units = imperial ? "&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch" : "";
+  const rl = Math.round(lat * 100) / 100, rn = Math.round(lon * 100) / 100; // ~1 km grid: shared cache key and upstream coords
+  const out = await cached(`wx:${rl},${rn}:${days}:${imperial}`, 600_000, async () => {
+    try {
+      const w = await get(`https://api.open-meteo.com/v1/forecast?latitude=${rl}&longitude=${rn}&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=${days}${units}`);
+      const d = w.daily || {};
+      return { latitude: w.latitude, longitude: w.longitude, timezone: w.timezone, units: { ...w.current_units }, current: w.current, daily: (d.time || []).map((t, i) => ({ date: t, weatherCode: d.weather_code[i], tMax: d.temperature_2m_max[i], tMin: d.temperature_2m_min[i], precipSum: d.precipitation_sum[i], precipProbMax: d.precipitation_probability_max?.[i], windMax: d.wind_speed_10m_max[i], uvMax: d.uv_index_max?.[i], sunrise: d.sunrise[i], sunset: d.sunset[i] })), source: "Open-Meteo (CC BY 4.0)" };
+    } catch (e) { return await metNorway(rl, rn, days, imperial); }
+  });
+  return { place, ...out };
 }
 
 const pm = (m) => { const p = (s) => { try { return JSON.parse(s); } catch { return null; } }; const outcomes = p(m.outcomes) || [], prices = p(m.outcomePrices) || []; return { question: m.question, slug: m.slug, endDate: m.endDate, outcomes: outcomes.map((o, i) => ({ outcome: o, probability: prices[i] !== undefined ? Number(prices[i]) : null })), volume24h: m.volume24hr !== undefined ? Number(m.volume24hr) : null, volumeTotal: m.volume !== undefined ? Number(m.volume) : null, liquidity: m.liquidity !== undefined ? Number(m.liquidity) : null, active: m.active, closed: m.closed, url: m.slug ? `https://polymarket.com/market/${m.slug}` : null }; };
