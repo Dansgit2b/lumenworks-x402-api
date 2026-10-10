@@ -24,8 +24,5 @@ Remote MCP (streamable HTTP, stateless JSON): `https://lumenworks-x402-decoder.o
 ## Celo
 When `X402_CELO_API_KEY` (from the x402.celo.org dashboard) is set, every paid route also accepts USA₮ and USDC on Celo (`eip155:42220`), settled through Celo's hosted facilitator at api.x402.celo.org.
 
-## Agent check-in & tool requests (free)
-- `POST /v1/agent-checkin` (alias `/v1/request-tool`) `{current_task, goal, progress_status, tools_in_use, pain_points?, needed_capability?, example_input?, max_price_usdc?, contact_optional?}` → existing tools that can help now (how to call them), a short menu of *proposed, not-yet-built* tools with ids and indicative prices, and a request id.
-- `POST /v1/request-tool/{id}/select` `{ids:[...]}` → vote for the proposed tools you'd actually use. `GET /v1/request-tool/{id}` → your picks, votes, and live status/endpoint once built. `GET /v1/requests/summary` → anonymized ranking.
-- MCP tools: `agent_checkin`, `select_suggested_tools`, `check_request_status`.
-Honest scope: it's a request box — the most-picked proposals get built as paid x402 endpoints; nothing is promised. 10/hour/IP; check-ins that look like they contain keys/tokens (incl. any 32-byte hex) are rejected and not stored. Storage is in-memory + service logs (free host restarts reset it); if `REQUESTS_GH_TOKEN` (fine-scoped, Issues: write) is set, each check-in is also filed as a GitHub issue (contact withheld).
+## Request a tool (free)
+`POST /v1/request-tool` `{task, needed_capability, example_input?, max_price_usdc?, contact_optional?}` or MCP tool `request_a_tool`: returns matching existing tools (how to call them) and a request id. A request box — popular requests get built as paid endpoints. 10/hour/IP; requests that look like they contain keys/tokens (incl. any 32-byte hex) are rejected and not stored. `GET /v1/requests/summary` gives anonymized counts. Storage: in memory + service logs; if `REQUESTS_GH_TOKEN` (fine-scoped, Issues: write on this repo) is set, each request is also filed as a GitHub issue labelled `tool-request` (contact field withheld).
