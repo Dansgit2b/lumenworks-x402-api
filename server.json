@@ -2,8 +2,16 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Dansgit2b/lumenworks-decoder",
   "title": "Lumen Works Decoder",
-  "description": "Decode/lint x402 payment headers, EIP-712 typed data and EVM calldata. Free tier; x402-paid HTTP.",
-  "repository": { "url": "https://github.com/Dansgit2b/lumenworks-x402-api", "source": "github" },
-  "version": "1.1.0",
-  "remotes": [ { "type": "streamable-http", "url": "https://lumenworks-x402-decoder.onrender.com/mcp" } ]
+  "description": "x402 pay-per-call agent tools: web\u2192Markdown, URL unfurl, EVM/ENS lookup, domain DNS+RDAP, calldata/E",
+  "repository": {
+    "url": "https://github.com/Dansgit2b/lumenworks-x402-api",
+    "source": "github"
+  },
+  "version": "1.2.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://lumenworks-x402-decoder.onrender.com/mcp"
+    }
+  ]
 }
