@@ -8,3 +8,9 @@ services:
     envVars:
       - key: PUBLIC_BASE
         value: https://lumenworks-x402-decoder.onrender.com
+      - key: STATS_GIST_ID
+        sync: false
+      - key: STATS_GIST_TOKEN
+        sync: false
+      - key: STATS_SALT
+        sync: false

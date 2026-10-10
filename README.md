@@ -1,4 +1,13 @@
-# Lumen Works API (x402)
+# Lumen Works Agent API (x402)
+
+Two listings on one origin:
+- **Lumen Pre-Sign Check**: `POST /v1/tx/explain` ($0.002). Use before signing any EVM transaction or EIP-712 message; returns `{summary[], flags[], verdict}` with `looks_ok | review | do_not_sign_unless_intended`. Agent policy: abort on `do_not_sign_unless_intended`, escalate `review`. **Informational, not a security guarantee; looks_ok does not mean safe; no simulation.** Accuracy set and known limits: [ACCURACY.md](ACCURACY.md). MCP: `/mcp/presign`.
+- **Lumen Agent Utilities**: every other route below. MCP: `/mcp`.
+
+Trust terms: no signup; free tier 20 calls/hour/IP under `/v1/free/...`; `GET`/`HEAD` on any paid path returns the 402 quote (it never settles); **not charged when a call errors**, because the x402 middleware settles only after the handler returns a status below 400. Input schemas and real example outputs (`examples.json`, captured live by `test/capture-examples.mjs`) are in each route's Bazaar extension and in `/openapi.json`, validated with `node test/validate-bazaar.mjs <base>`.
+
+Stats: `/v1/stats` has anonymous aggregates only (UA family, daily unique counts from salted daily-rotating IP hashes, 30-day retention). They persist across deploys when `STATS_GIST_ID` + `STATS_GIST_TOKEN` (a gist-only token) are set; otherwise they are kept in memory.
+
 Pay-per-call agent utilities, 0.001–0.002 USDC per call on Base mainnet via x402 (exact scheme, PayAI public facilitator). Author: Dan ([Dansgit2b](https://github.com/Dansgit2b)). Early-stage, unaudited.
 
 | Endpoint (POST JSON) | What |

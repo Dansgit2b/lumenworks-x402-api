@@ -1,0 +1,17 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Dansgit2b/lumen-presign-check",
+  "title": "Lumen Pre-Sign Check",
+  "description": "Use before signing an EVM tx or EIP-712 message: risk flags + verdict. Informational, no simulation",
+  "repository": {
+    "url": "https://github.com/Dansgit2b/lumenworks-x402-api",
+    "source": "github"
+  },
+  "version": "1.4.0",
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://lumenworks-x402-decoder.onrender.com/mcp/presign"
+    }
+  ]
+}

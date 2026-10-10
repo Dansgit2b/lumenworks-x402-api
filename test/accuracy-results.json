@@ -1,0 +1,410 @@
+{
+  "summary": {
+    "limitations": "0/3",
+    "ranAt": "2026-10-10T12:49:42.144Z",
+    "total": 30,
+    "pass": 27,
+    "risky": "18/18",
+    "benign": "9/9",
+    "riskyMissedAsLooksOk": 0,
+    "benignEscalated": 0
+  },
+  "rows": [
+    {
+      "class": "risky",
+      "name": "Unlimited USDC approve to unknown spender",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "UNLIMITED_APPROVAL",
+        "UNKNOWN_SPENDER"
+      ],
+      "flags": [
+        "UNLIMITED_APPROVAL",
+        "UNKNOWN_SPENDER"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "Unlimited USDC approve to Permit2 (common, still unlimited)",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "UNLIMITED_APPROVAL"
+      ],
+      "flags": [
+        "UNLIMITED_APPROVAL"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "Unlimited increaseAllowance to unknown spender",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "UNLIMITED_APPROVAL"
+      ],
+      "flags": [
+        "UNLIMITED_APPROVAL"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "setApprovalForAll(true) to unknown operator (NFT drainer)",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "APPROVAL_FOR_ALL"
+      ],
+      "flags": [
+        "APPROVAL_FOR_ALL"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "Permit2 PermitSingle unlimited to unknown spender (typed data)",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "UNLIMITED_PERMIT2",
+        "UNKNOWN_SPENDER"
+      ],
+      "flags": [
+        "UNLIMITED_PERMIT2",
+        "UNKNOWN_SPENDER"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "On-chain Permit2 approve() unlimited to unknown spender",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "UNLIMITED_PERMIT2",
+        "UNKNOWN_SPENDER"
+      ],
+      "flags": [
+        "UNLIMITED_PERMIT2",
+        "UNKNOWN_SPENDER"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "EIP-2612 Permit unlimited, deadline never",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "UNLIMITED_PERMIT",
+        "LONG_DEADLINE"
+      ],
+      "flags": [
+        "UNLIMITED_PERMIT",
+        "LONG_DEADLINE"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "multicall wrapping an unlimited approve",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "BATCHED_CALL",
+        "UNLIMITED_APPROVAL"
+      ],
+      "flags": [
+        "BATCHED_CALL",
+        "UNLIMITED_APPROVAL",
+        "UNKNOWN_SPENDER"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "aggregate3 wrapping setApprovalForAll",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "APPROVAL_FOR_ALL"
+      ],
+      "flags": [
+        "BATCHED_CALL",
+        "APPROVAL_FOR_ALL"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "Proxy contract as spender, limited amount (proxy not detectable statically)",
+      "expected": "review",
+      "verdict": "review",
+      "pass": true,
+      "expectedFlags": [
+        "UNKNOWN_SPENDER"
+      ],
+      "flags": [
+        "UNKNOWN_SPENDER"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "Proxy contract as spender, unlimited",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "UNLIMITED_APPROVAL"
+      ],
+      "flags": [
+        "UNLIMITED_APPROVAL",
+        "UNKNOWN_SPENDER"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "upgradeTo (proxy admin call)",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "ADMIN_CALL"
+      ],
+      "flags": [
+        "ADMIN_CALL"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "transferOwnership to unknown address",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "ADMIN_CALL"
+      ],
+      "flags": [
+        "ADMIN_CALL"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "Seaport order with zero consideration (free-listing phish)",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "ZERO_PRICE_ORDER"
+      ],
+      "flags": [
+        "MARKET_ORDER",
+        "ZERO_PRICE_ORDER"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "x402 EIP-3009 payment to a different payTo than expected",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "PAYTO_MISMATCH"
+      ],
+      "flags": [
+        "PAYTO_MISMATCH"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "Permit signed for another chain (chainId mismatch)",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "do_not_sign_unless_intended",
+      "pass": true,
+      "expectedFlags": [
+        "CHAIN_MISMATCH"
+      ],
+      "flags": [
+        "CHAIN_MISMATCH"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "Unknown selector ('claim rewards' style phishing)",
+      "expected": "review",
+      "verdict": "review",
+      "pass": true,
+      "expectedFlags": [
+        "UNDECODED"
+      ],
+      "flags": [
+        "UNDECODED"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "risky",
+      "name": "transferFrom pulling tokens from another address",
+      "expected": "review",
+      "verdict": "review",
+      "pass": true,
+      "expectedFlags": [
+        "TRANSFER_FROM"
+      ],
+      "flags": [
+        "TRANSFER_FROM"
+      ],
+      "missingFlags": []
+    },
+    {
+      "class": "benign",
+      "name": "USDC transfer 10 USDC",
+      "expected": "looks_ok",
+      "verdict": "looks_ok",
+      "pass": true,
+      "expectedFlags": [],
+      "flags": [],
+      "missingFlags": []
+    },
+    {
+      "class": "benign",
+      "name": "Limited approve 100 USDC to 1inch v6 router",
+      "expected": "looks_ok",
+      "verdict": "looks_ok",
+      "pass": true,
+      "expectedFlags": [],
+      "flags": [],
+      "missingFlags": []
+    },
+    {
+      "class": "benign",
+      "name": "Revoke: approve(spender, 0)",
+      "expected": "looks_ok",
+      "verdict": "looks_ok",
+      "pass": true,
+      "expectedFlags": [],
+      "flags": [],
+      "missingFlags": []
+    },
+    {
+      "class": "benign",
+      "name": "Revoke: setApprovalForAll(false)",
+      "expected": "looks_ok",
+      "verdict": "looks_ok",
+      "pass": true,
+      "expectedFlags": [],
+      "flags": [],
+      "missingFlags": []
+    },
+    {
+      "class": "benign",
+      "name": "WETH deposit() with value",
+      "expected": "looks_ok",
+      "verdict": "looks_ok",
+      "pass": true,
+      "expectedFlags": [],
+      "flags": [],
+      "missingFlags": []
+    },
+    {
+      "class": "benign",
+      "name": "x402 EIP-3009 payment to expected payTo, 2-min validity",
+      "expected": "looks_ok",
+      "verdict": "looks_ok",
+      "pass": true,
+      "expectedFlags": [],
+      "flags": [],
+      "missingFlags": []
+    },
+    {
+      "class": "benign",
+      "name": "Permit 1 USDC to known router, 1h deadline",
+      "expected": "looks_ok",
+      "verdict": "looks_ok",
+      "pass": true,
+      "expectedFlags": [],
+      "flags": [],
+      "missingFlags": []
+    },
+    {
+      "class": "benign",
+      "name": "Permit2 PermitSingle limited to Universal Router, 30-day expiry",
+      "expected": "looks_ok",
+      "verdict": "looks_ok",
+      "pass": true,
+      "expectedFlags": [],
+      "flags": [],
+      "missingFlags": []
+    },
+    {
+      "class": "limitation",
+      "name": "Universal Router execute() embedding an unlimited Permit2 permit",
+      "expected": "do_not_sign_unless_intended",
+      "verdict": "review",
+      "pass": false,
+      "expectedFlags": [
+        "UNLIMITED_PERMIT2"
+      ],
+      "flags": [
+        "BATCHED_CALL"
+      ],
+      "missingFlags": [
+        "UNLIMITED_PERMIT2"
+      ]
+    },
+    {
+      "class": "limitation",
+      "name": "'Wallet migration' phish: transfer entire USDC balance to a fresh address",
+      "expected": "review",
+      "verdict": "looks_ok",
+      "pass": false,
+      "expectedFlags": [],
+      "flags": [],
+      "missingFlags": []
+    },
+    {
+      "class": "limitation",
+      "name": "Approve on a fake look-alike 'USDC' token contract",
+      "expected": "review",
+      "verdict": "looks_ok",
+      "pass": false,
+      "expectedFlags": [],
+      "flags": [],
+      "missingFlags": []
+    },
+    {
+      "class": "benign",
+      "name": "Seaport listing with real price",
+      "expected": "review",
+      "verdict": "review",
+      "pass": true,
+      "expectedFlags": [
+        "MARKET_ORDER"
+      ],
+      "flags": [
+        "MARKET_ORDER"
+      ],
+      "missingFlags": []
+    }
+  ]
+}

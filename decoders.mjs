@@ -58,7 +58,7 @@ export async function decodeCalldata(input) {
   const sigs = input?.signature ? [input.signature] : await lookup(selector);
   const candidates = [];
   for (const s of sigs.slice(0, 10)) {
-    try { const item = parseAbiItem(`function ${s}`); const d = decodeFunctionData({ abi: [item], data }); candidates.push({ signature: s, args: ser(d.args) }); } catch {}
+    try { const item = parseAbiItem(`function ${s}`); const d = decodeFunctionData({ abi: [item], data }); candidates.push({ signature: s, args: ser(d.args ?? []) }); } catch {}
   }
   return { selector, signaturesFound: sigs.length, decoded: candidates[0] || null, candidates, source: input?.signature ? "user" : "openchain/4byte" };
 }

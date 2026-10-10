@@ -1,0 +1,641 @@
+{
+ "/v1/tx/explain": {
+  "capturedAt": "2026-10-10T12:48:29.481Z",
+  "input": {
+   "transaction": {
+    "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "data": "0x095ea7b3000000000000000000000000111111125421ca6dc452d289314280a0f8842a65ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "value": "0"
+   },
+   "chainId": 8453
+  },
+  "output": {
+   "kind": "transaction",
+   "summary": [
+    "Approve 0x111111125421cA6dc452d289314280a0f8842A65 (1inch v6 Router) to spend UNLIMITED units of token 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+   ],
+   "flags": [
+    {
+     "level": "high",
+     "code": "UNLIMITED_APPROVAL",
+     "msg": "Unlimited token approval: spender can drain this token at any time."
+    }
+   ],
+   "calldata": {
+    "selector": "0x095ea7b3",
+    "signaturesFound": 1,
+    "decoded": {
+     "signature": "approve(address,uint256)",
+     "args": [
+      "0x111111125421cA6dc452d289314280a0f8842A65",
+      "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+     ]
+    },
+    "candidates": [
+     {
+      "signature": "approve(address,uint256)",
+      "args": [
+       "0x111111125421cA6dc452d289314280a0f8842A65",
+       "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+      ]
+     }
+    ],
+    "source": "built-in"
+   },
+   "to": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+   "toLabel": "USDC (Base)",
+   "valueWei": "0",
+   "risk": "high",
+   "verdict": "do_not_sign_unless_intended",
+   "disclaimer": "Informational, not a security guarantee. looks_ok does not mean safe. No simulation, no on-chain state (proxy implementations, spender code, balances) is checked."
+  }
+ },
+ "/v1/calldata/decode": {
+  "capturedAt": "2026-10-10T12:48:29.487Z",
+  "input": {
+   "data": "0xa9059cbb000000000000000000000000ee9790cb3960952f585379f831a89b4e00b4029a00000000000000000000000000000000000000000000000000000000000f4240"
+  },
+  "output": {
+   "selector": "0xa9059cbb",
+   "signaturesFound": 1,
+   "decoded": {
+    "signature": "transfer(address,uint256)",
+    "args": [
+     "0xee9790cB3960952F585379F831a89b4e00B4029A",
+     "1000000"
+    ]
+   },
+   "candidates": [
+    {
+     "signature": "transfer(address,uint256)",
+     "args": [
+      "0xee9790cB3960952F585379F831a89b4e00B4029A",
+      "1000000"
+     ]
+    }
+   ],
+   "source": "openchain/4byte"
+  }
+ },
+ "/v1/web/markdown": {
+  "capturedAt": "2026-10-10T12:48:29.640Z",
+  "input": {
+   "url": "https://example.com",
+   "maxChars": 2000
+  },
+  "output": {
+   "url": "https://example.com/",
+   "status": 200,
+   "title": "Example Domain",
+   "excerpt": "This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes.",
+   "metadata": {
+    "title": "Example Domain",
+    "favicon": "data:,",
+    "lang": "en"
+   },
+   "wordCount": 25,
+   "truncated": false,
+   "markdown": "This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes."
+  }
+ },
+ "/v1/x402/lint": {
+  "capturedAt": "2026-10-10T12:48:29.703Z",
+  "input": {
+   "header": "eyJ4NDAyVmVyc2lvbiI6MiwicmVzb3VyY2UiOnsidXJsIjoiaHR0cHM6Ly9sdW1lbndvcmtzLXg0MDItZGVjb2Rlci5vbnJlbmRlci5jb20vdjEvdHgvZXhwbGFpbiJ9LCJhY2NlcHRzIjpbeyJzY2hlbWUiOiJleGFjdCIsIm5ldHdvcmsiOiJlaXAxNTU6ODQ1MyIsImFtb3VudCI6IjIwMDAiLCJhc3NldCI6IjB4ODMzNTg5ZkNENmVEYjZFMDhmNGM3QzMyRDRmNzFiNTRiZEEwMjkxMyIsInBheVRvIjoiMHhlZTk3OTBjQjM5NjA5NTJGNTg1Mzc5RjgzMWE4OWI0ZTAwQjQwMjlBIiwibWF4VGltZW91dFNlY29uZHMiOjEyMCwiZXh0cmEiOnsibmFtZSI6IlVTRCBDb2luIiwidmVyc2lvbiI6IjIifX1dfQ=="
+  },
+  "output": {
+   "ok": true,
+   "kind": "PAYMENT-REQUIRED",
+   "decoded": {
+    "x402Version": 2,
+    "resource": {
+     "url": "https://lumenworks-x402-decoder.onrender.com/v1/tx/explain"
+    },
+    "accepts": [
+     {
+      "scheme": "exact",
+      "network": "eip155:8453",
+      "amount": "2000",
+      "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "payTo": "0xee9790cB3960952F585379F831a89b4e00B4029A",
+      "maxTimeoutSeconds": 120,
+      "extra": {
+       "name": "USD Coin",
+       "version": "2"
+      }
+     }
+    ]
+   },
+   "issues": []
+  }
+ },
+ "/v1/eip712/decode": {
+  "capturedAt": "2026-10-10T12:48:29.704Z",
+  "input": {
+   "typedData": {
+    "domain": {
+     "name": "USD Coin",
+     "version": "2",
+     "chainId": 8453,
+     "verifyingContract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+    },
+    "primaryType": "Permit",
+    "types": {
+     "EIP712Domain": [
+      {
+       "name": "name",
+       "type": "string"
+      },
+      {
+       "name": "version",
+       "type": "string"
+      },
+      {
+       "name": "chainId",
+       "type": "uint256"
+      },
+      {
+       "name": "verifyingContract",
+       "type": "address"
+      }
+     ],
+     "Permit": [
+      {
+       "name": "owner",
+       "type": "address"
+      },
+      {
+       "name": "spender",
+       "type": "address"
+      },
+      {
+       "name": "value",
+       "type": "uint256"
+      },
+      {
+       "name": "nonce",
+       "type": "uint256"
+      },
+      {
+       "name": "deadline",
+       "type": "uint256"
+      }
+     ]
+    },
+    "message": {
+     "owner": "0x1111111111111111111111111111111111111111",
+     "spender": "0x111111125421cA6dc452d289314280a0f8842A65",
+     "value": "1000000",
+     "nonce": "0",
+     "deadline": "1893456000"
+    }
+   }
+  },
+  "output": {
+   "primaryType": "Permit",
+   "domain": {
+    "name": "USD Coin",
+    "version": "2",
+    "chainId": 8453,
+    "verifyingContract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+   },
+   "domainSeparator": "0x02fa7265e7c5d81118673727957699e4d68f74cd74b7db77da710fe8a2c7834f",
+   "digest": "0x23e8c55a0b5d344e0f50581dd1210e0656d001958874ac7ac06c60f1c4ad9704",
+   "message": {
+    "owner": "0x1111111111111111111111111111111111111111",
+    "spender": "0x111111125421cA6dc452d289314280a0f8842A65",
+    "value": "1000000",
+    "nonce": "0",
+    "deadline": "1893456000"
+   },
+   "notes": [
+    "verifyingContract 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 on chainId 8453",
+    "ERC-2612 Permit: grants token allowance to spender, check value/deadline"
+   ]
+  }
+ },
+ "/v1/web/unfurl": {
+  "capturedAt": "2026-10-10T12:48:29.710Z",
+  "input": {
+   "url": "https://github.com"
+  },
+  "output": {
+   "url": "https://github.com/",
+   "status": 200,
+   "contentType": "text/html; charset=utf-8",
+   "title": "GitHub · Change is constant. GitHub keeps you ahead. · GitHub",
+   "description": "Join the world's most widely adopted, AI-powered developer platform where millions of developers, businesses, and the largest open source community build software that advances humanity.",
+   "image": "https://images.ctfassets.net/8aevphvgewt8/4pe4eOtUJ0ARpZRE4fNekf/f52b1f9c52f059a33170229883731ed0/GH-Homepage-Universe-img.png",
+   "siteName": "GitHub",
+   "type": "object",
+   "canonical": "https://github.com/",
+   "favicon": "https://github.githubassets.com/favicons/favicon.png",
+   "lang": "en",
+   "twitterCard": "summary_large_image",
+   "linkCount": 140
+  }
+ },
+ "/v1/evm/address": {
+  "capturedAt": "2026-10-10T12:48:29.798Z",
+  "input": {
+   "address": "vitalik.eth"
+  },
+  "output": {
+   "address": "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+   "ens": "vitalik.eth",
+   "ensRecords": {
+    "avatar": "https://euc.li/vitalik.eth",
+    "url": "https://vitalik.ca",
+    "com.twitter": "VitalikButerin",
+    "com.github": "vbuterin",
+    "description": "mi pinxe lo crino tcati"
+   },
+   "chains": {
+    "ethereum": {
+     "isContract": true,
+     "nativeBalance": "5.768184715803065014",
+     "txCount": 5969,
+     "stablecoins": {
+      "USDC": "37.192124",
+      "USDT": "291.368219"
+     },
+     "codeSize": 23,
+     "eip7702Delegated": true
+    },
+    "base": {
+     "isContract": true,
+     "nativeBalance": "3.12882180347263728",
+     "txCount": 70,
+     "stablecoins": {
+      "USDC": "44.783666"
+     },
+     "codeSize": 23,
+     "eip7702Delegated": true
+    }
+   },
+   "source": "public RPC (publicnode.com)",
+   "at": "2026-10-10T12:48:30.232Z"
+  }
+ },
+ "/v1/domain/lookup": {
+  "capturedAt": "2026-10-10T12:48:30.232Z",
+  "input": {
+   "domain": "example.com"
+  },
+  "output": {
+   "domain": "example.com",
+   "resolves": true,
+   "dns": {
+    "A": [
+     "172.66.147.243",
+     "104.20.23.154"
+    ],
+    "AAAA": [
+     "2606:4700:10::6814:179a",
+     "2606:4700:10::ac42:93f3"
+    ],
+    "CNAME": [],
+    "MX": [
+     {
+      "priority": 0,
+      "exchange": ""
+     }
+    ],
+    "NS": [
+     "hera.ns.cloudflare.com",
+     "elliott.ns.cloudflare.com"
+    ],
+    "TXT": [
+     "v=spf1 -all",
+     "_k2n1y4vw3qtb4skdx9e7dxt97qrmmq9"
+    ],
+    "CAA": []
+   },
+   "email": {
+    "hasMx": true,
+    "spf": "v=spf1 -all",
+    "dmarc": "v=DMARC1;p=reject;sp=reject;adkim=s;aspf=s"
+   },
+   "rdap": {
+    "handle": "2336799_DOMAIN_COM-VRSN",
+    "status": [
+     "client delete prohibited",
+     "client transfer prohibited",
+     "client update prohibited"
+    ],
+    "registered": "1995-08-14T04:00:00Z",
+    "expires": "2027-08-13T04:00:00Z",
+    "lastChanged": "2026-08-14T08:01:43Z",
+    "registrar": "RESERVED-Internet Assigned Numbers Authority",
+    "nameservers": [
+     "elliott.ns.cloudflare.com",
+     "hera.ns.cloudflare.com"
+    ],
+    "dnssec": true
+   },
+   "ageDays": 11380,
+   "at": "2026-10-10T12:48:30.425Z"
+  }
+ },
+ "/v1/pubmed/search": {
+  "capturedAt": "2026-10-10T12:48:30.426Z",
+  "input": {
+   "query": "GLP-1 obesity",
+   "limit": 2
+  },
+  "output": {
+   "query": "GLP-1 obesity",
+   "total": 11811,
+   "results": [
+    {
+     "pmid": "40466247",
+     "title": "GLP-1-based medications: Mechanisms involved in obesity treatment.",
+     "journal": "Medicina clinica",
+     "pubDate": "2025 Jul",
+     "authors": [
+      "Salvador J"
+     ],
+     "doi": "10.1016/j.medcli.2025.107035",
+     "url": "https://pubmed.ncbi.nlm.nih.gov/40466247/",
+     "abstract": "Thanks to biochemical engineering, the glucagon-like peptide-1 (GLP-1) molecule has emerged as an essential element in the development of diverse agonists and multiagonists, based in the GLP-1 structure for obesity treatment. These new antiobesity medications can reach up to 24% weight loss, which makes possible an effective management of obesity and its complications. GLP-1 agonists affect divers…"
+    },
+    {
+     "pmid": "34626851",
+     "title": "GLP-1 physiology informs the pharmacotherapy of obesity.",
+     "journal": "Molecular metabolism",
+     "pubDate": "2022 Mar",
+     "authors": [
+      "Drucker DJ"
+     ],
+     "doi": "10.1016/j.molmet.2021.101351",
+     "url": "https://pubmed.ncbi.nlm.nih.gov/34626851/",
+     "abstract": "Glucagon-like peptide-1 receptor agonists (GLP1RA) augment glucose-dependent insulin release and reduce glucagon secretion and gastric emptying, enabling their successful development for the treatment of type 2 diabetes (T2D). These agents also inhibit food intake and reduce body weight, fostering investigation of GLP1RA for the treatment of obesity. Here I discuss the physiology of Glucagon-like …"
+    }
+   ],
+   "source": "NCBI PubMed E-utilities"
+  }
+ },
+ "/v1/arxiv/search": {
+  "capturedAt": "2026-10-10T12:48:30.829Z",
+  "input": {
+   "query": "LLM agents tool use",
+   "limit": 2
+  },
+  "output": {
+   "query": "LLM agents tool use",
+   "total": 1585251,
+   "results": [
+    {
+     "id": "2111.01762v1",
+     "title": "AIRCC-Clim: a user-friendly tool for generating regional probabilistic climate change scenarios and risk measures",
+     "summary": "Complex physical models are the most advanced tools available for producing realistic simulations of the climate system. However, such levels of realism imply high computational cost and restrictions on their use for policymaking and risk assessment. Two central characteristics of climate change are uncertainty and that it is a dynamic problem in which international actions can significantly alter…",
+     "authors": [
+      "Francisco Estrada",
+      "Oscar Calderón-Bustamante",
+      "Wouter Botzen"
+     ],
+     "published": "2021-10-30T11:09:03Z",
+     "updated": "2021-10-30T11:09:03Z",
+     "categories": [
+      "physics.ao-ph",
+      "econ.GN",
+      "stat.AP"
+     ],
+     "pdf": "https://arxiv.org/pdf/2111.01762v1",
+     "url": "http://arxiv.org/abs/2111.01762v1"
+    },
+    {
+     "id": "2605.18805v1",
+     "title": "RecoAtlas: From Semantic Plausibility to Set-Level Utility in LLM Recommendation Agents",
+     "summary": "LLM recommendation agents increasingly produce structured recommendation reports: sets of items accompanied by natural-language justifications. Yet existing evaluations often reduce this setting to reranking small shortlisted candidate sets or judge reports mainly by semantic plausibility. We introduce Recommendation Atlas (Agentic Tool-Level Assessment for Shopping), or RecoAtlas, a benchmark and…",
+     "authors": [
+      "Imad Aouali",
+      "Flavian Vasile",
+      "Otmane Sakhi"
+     ],
+     "published": "2026-05-11T18:55:32Z",
+     "updated": "2026-05-11T18:55:32Z",
+     "categories": [
+      "cs.IR",
+      "cs.AI",
+      "cs.LG"
+     ],
+     "pdf": "https://arxiv.org/pdf/2605.18805v1",
+     "url": "http://arxiv.org/abs/2605.18805v1"
+    }
+   ],
+   "source": "arXiv API"
+  }
+ },
+ "/v1/sec/filings": {
+  "capturedAt": "2026-10-10T12:48:31.355Z",
+  "input": {
+   "ticker": "AAPL",
+   "forms": [
+    "10-K"
+   ],
+   "limit": 2
+  },
+  "output": {
+   "cik": "0000320193",
+   "name": "Apple Inc.",
+   "ticker": "AAPL",
+   "sic": "3571",
+   "sicDescription": "Electronic Computers",
+   "stateOfIncorporation": "CA",
+   "fiscalYearEnd": "0926",
+   "filings": [
+    {
+     "form": "10-K",
+     "filed": "2025-10-31",
+     "reportDate": "2025-09-27",
+     "description": "10-K",
+     "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm"
+    },
+    {
+     "form": "10-K",
+     "filed": "2024-11-01",
+     "reportDate": "2024-09-28",
+     "description": "10-K",
+     "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019324000123/aapl-20240928.htm"
+    }
+   ],
+   "latestAnnualFacts": {
+    "Revenues": {
+     "value": 62900000000,
+     "period": "2018-09-29",
+     "form": "10-K",
+     "fy": 2018
+    },
+    "RevenueFromContractWithCustomerExcludingAssessedTax": {
+     "value": 416161000000,
+     "period": "2025-09-27",
+     "form": "10-K",
+     "fy": 2025
+    },
+    "NetIncomeLoss": {
+     "value": 112010000000,
+     "period": "2025-09-27",
+     "form": "10-K",
+     "fy": 2025
+    },
+    "Assets": {
+     "value": 359241000000,
+     "period": "2025-09-27",
+     "form": "10-K",
+     "fy": 2025
+    },
+    "Liabilities": {
+     "value": 285508000000,
+     "period": "2025-09-27",
+     "form": "10-K",
+     "fy": 2025
+    },
+    "StockholdersEquity": {
+     "value": 73733000000,
+     "period": "2025-09-27",
+     "form": "10-K",
+     "fy": 2025
+    },
+    "EarningsPerShareDiluted": {
+     "value": 7.46,
+     "period": "2025-09-27",
+     "form": "10-K",
+     "fy": 2025
+    },
+    "CashAndCashEquivalentsAtCarryingValue": {
+     "value": 35934000000,
+     "period": "2025-09-27",
+     "form": "10-K",
+     "fy": 2025
+    }
+   },
+   "source": "SEC EDGAR (data.sec.gov)"
+  }
+ },
+ "/v1/weather/forecast": {
+  "capturedAt": "2026-10-10T12:48:31.621Z",
+  "input": {
+   "location": "Berlin",
+   "days": 2
+  },
+  "output": {
+   "place": {
+    "name": "Berlin",
+    "country": "Germany",
+    "admin1": "State of Berlin",
+    "timezone": "Europe/Berlin",
+    "geocoder": "open-meteo"
+   },
+   "latitude": 52.512604,
+   "longitude": 13.419517,
+   "timezone": "Europe/Berlin",
+   "units": {
+    "time": "iso8601",
+    "interval": "seconds",
+    "temperature_2m": "°C",
+    "apparent_temperature": "°C",
+    "relative_humidity_2m": "%",
+    "precipitation": "mm",
+    "weather_code": "wmo code",
+    "wind_speed_10m": "km/h",
+    "wind_direction_10m": "°",
+    "is_day": ""
+   },
+   "current": {
+    "time": "2026-10-10T14:45",
+    "interval": 900,
+    "temperature_2m": 16.5,
+    "apparent_temperature": 13.4,
+    "relative_humidity_2m": 51,
+    "precipitation": 0,
+    "weather_code": 2,
+    "wind_speed_10m": 14.8,
+    "wind_direction_10m": 257,
+    "is_day": 1
+   },
+   "daily": [
+    {
+     "date": "2026-10-10",
+     "weatherCode": 80,
+     "tMax": 16.7,
+     "tMin": 11.1,
+     "precipSum": 1.5,
+     "precipProbMax": 85,
+     "windMax": 17.4,
+     "uvMax": 3.1,
+     "sunrise": "2026-10-10T07:22",
+     "sunset": "2026-10-10T18:23"
+    },
+    {
+     "date": "2026-10-11",
+     "weatherCode": 80,
+     "tMax": 12.7,
+     "tMin": 8.4,
+     "precipSum": 0.9,
+     "precipProbMax": 83,
+     "windMax": 16.8,
+     "uvMax": 1.65,
+     "sunrise": "2026-10-11T07:24",
+     "sunset": "2026-10-11T18:20"
+    }
+   ],
+   "source": "Open-Meteo (CC BY 4.0)"
+  }
+ },
+ "/v1/polymarket/markets": {
+  "capturedAt": "2026-10-10T12:48:32.522Z",
+  "input": {
+   "limit": 2
+  },
+  "output": {
+   "query": null,
+   "markets": [
+    {
+     "question": "Dota 2: Team Yandex vs Team Spirit - Game 2 Winner",
+     "slug": "dota2-ty-ts8-2026-10-10-game2",
+     "endDate": "2026-10-10T14:30:00Z",
+     "outcomes": [
+      {
+       "outcome": "Team Yandex",
+       "probability": 0.987
+      },
+      {
+       "outcome": "Team Spirit",
+       "probability": 0.013
+      }
+     ],
+     "volume24h": 1246835.9942849993,
+     "volumeTotal": 1242546.0467380008,
+     "liquidity": 94999.5371,
+     "active": true,
+     "closed": false,
+     "url": "https://polymarket.com/market/dota2-ty-ts8-2026-10-10-game2"
+    },
+    {
+     "question": "Will Luiz Inácio Lula da Silva win the 2026 Brazilian presidential election?",
+     "slug": "will-luiz-incio-lula-da-silva-win-the-2026-brazilian-presidential-election",
+     "endDate": "2026-10-05T03:59:00Z",
+     "outcomes": [
+      {
+       "outcome": "Yes",
+       "probability": 0.115
+      },
+      {
+       "outcome": "No",
+       "probability": 0.885
+      }
+     ],
+     "volume24h": 894261.5656739997,
+     "volumeTotal": 21990309.847675,
+     "liquidity": 1469356.5492,
+     "active": true,
+     "closed": false,
+     "url": "https://polymarket.com/market/will-luiz-incio-lula-da-silva-win-the-2026-brazilian-presidential-election"
+    }
+   ],
+   "note": "Top active markets by 24h volume. Read-only data; not financial advice.",
+   "source": "Polymarket Gamma API"
+  }
+ }
+}

@@ -10,4 +10,5 @@ jobs:
       - uses: actions/checkout@v4
       - run: curl -sL https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz | tar xz mcp-publisher
       - run: ./mcp-publisher login github-oidc
-      - run: ./mcp-publisher publish
+      - run: ./mcp-publisher publish server.json
+      - run: ./mcp-publisher publish server.presign.json
