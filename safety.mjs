@@ -69,5 +69,5 @@ export async function x402SafetyCheck(input) {
   } else add("info", "no_client_config", "Pass client_config {max_per_call_usdc, max_daily_usdc, idempotency_key, allow_any_pay_to} to check your own spend controls.");
   add("info", "replay", "exact/EIP-3009: each authorization carries a random nonce and validBefore; never reuse a signed PAYMENT-SIGNATURE and keep validBefore short.");
   const errors = checks.filter((c) => c.level === "error").length, warns = checks.filter((c) => c.level === "warn").length;
-  return { verdict: errors ? "do_not_pay" : warns ? "review" : "ok", errors, warnings: warns, health, options, resource: pr?.resource ?? null, checks, method: "deterministic rules; nothing stored", monitoring: "Continuous monitoring (alerts on price/payTo changes) is not built yet. Early-access deposit: POST /v1/monitoring/early-access (1 USDC via x402) — signals demand; no delivery date promised." };
+  return { verdict: errors ? "do_not_pay" : warns ? "review" : "ok", errors, warnings: warns, health, options, resource: pr?.resource ?? null, checks, method: "deterministic rules; nothing stored", monitoring: "Continuous monitoring (alerts on price/payTo changes) is not built yet. Free waitlist: POST /v1/monitoring/waitlist {endpoint_url, contact?}." };
 }
