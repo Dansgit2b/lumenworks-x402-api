@@ -1,5 +1,6 @@
 /** Free "request a tool" box. Stores in memory + stdout; if REQUESTS_GH_TOKEN (fine-scoped, issues:write on REQUESTS_REPO) is set, files a GitHub issue for durability. */
 import crypto from "node:crypto";
+import { advise } from "./advisor.mjs";
 const SECRET = [/0x[0-9a-fA-F]{64}\b/, /\b(sk|pk|rk)[-_](live|test|proj)?[-_]?[A-Za-z0-9]{16,}/, /\bgh[pousr]_[A-Za-z0-9]{20,}/, /\bgithub_pat_[A-Za-z0-9_]{20,}/, /\bAKIA[0-9A-Z]{16}\b/, /\bxox[abprs]-[A-Za-z0-9-]{10,}/, /-----BEGIN [A-Z ]*PRIVATE KEY-----/, /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/, /\b([a-z]+ ){11,23}[a-z]+\b(?=.*(seed|mnemonic|phrase))/i, /\bAIza[0-9A-Za-z_-]{35}\b/];
 const SPAM = /(https?:\/\/\S+.*){4,}|casino|viagra|porn|airdrop claim|free money/i;
 const store = [];
@@ -20,21 +21,21 @@ export const PROPOSALS = [
 ];
 const words = (s) => String(s || "").toLowerCase().match(/[a-z0-9]{3,}/g) || [];
 export function makeRequestHandlers({ tools, base }) {
-  async function requestTool(input) {
-    const f = { current_task: input?.current_task || input?.task, goal: input?.goal, progress_status: input?.progress_status, tools_in_use: input?.tools_in_use, pain_points: input?.pain_points, needed_capability: input?.needed_capability, example_input: input?.example_input, max_price_usdc: input?.max_price_usdc, contact_optional: input?.contact_optional };
-    if (!f.current_task && !f.needed_capability && !f.goal) throw Object.assign(new Error("Provide at least {current_task}, {goal} or {needed_capability}"), { status: 400 });
+  async function requestTool(input, detailed = false) {
+    const f = { purpose: input?.purpose, workflow: input?.workflow, current_challenges: input?.current_challenges, must_haves: input?.must_haves, nice_to_haves: input?.nice_to_haves, constraints: input?.constraints, current_task: input?.current_task || input?.task, goal: input?.goal, progress_status: input?.progress_status, tools_in_use: input?.tools_in_use, pain_points: input?.pain_points, needed_capability: input?.needed_capability, example_input: input?.example_input, max_price_usdc: input?.max_price_usdc, contact_optional: input?.contact_optional };
+    if (!f.purpose && !f.workflow && !f.current_task && !f.needed_capability && !f.goal) throw Object.assign(new Error("Provide at least {purpose} or {workflow} (also accepted: current_task, goal, needed_capability)"), { status: 400 });
     const text = JSON.stringify(f);
     if (text.length > 4000) throw Object.assign(new Error("Request too long (max 4000 chars total)"), { status: 413 });
     if (SECRET.some((r) => r.test(text))) throw Object.assign(new Error("Rejected: request appears to contain a secret/private key/token. Remove credentials and resubmit. Nothing was stored."), { status: 422 });
     if (SPAM.test(text)) throw Object.assign(new Error("Rejected as spam"), { status: 422 });
-    const q = new Set(words(`${f.current_task} ${f.goal} ${f.pain_points} ${f.needed_capability}`));
-    const matches = tools.map((t) => ({ t, score: words(`${t.name} ${t.description}`).filter((w) => q.has(w)).length })).filter((x) => x.score >= 2).sort((a, b) => b.score - a.score).slice(0, 3)
+    const q = new Set(words(Object.values(f).filter((v) => typeof v === "string").join(" "))); const adv = advise(f, detailed);
+    const matches = tools.map((t) => ({ t, score: words(`${t.name} ${t.description}`).filter((w) => q.has(w)).length + (adv.toolHints.includes(t.name) ? 5 : 0) })).filter((x) => x.score >= 3).sort((a, b) => b.score - a.score).slice(0, 3)
       .map(({ t }) => ({ tool: t.name, mcp: `${base}/mcp (tools/call name=${t.name}, free 20/h)`, http: `POST ${base}${t.path}`, priceUsdc: t.price, free: `POST ${base}/v1/free${t.path.slice(3)}`, description: t.description }));
-    const scored = PROPOSALS.map((p) => ({ p, score: words(p.kw + " " + p.name).filter((w) => q.has(w)).length }));
+    const scored = PROPOSALS.map((p) => ({ p, score: words(p.kw + " " + p.name).filter((w) => q.has(w)).length + (adv.proposeHints.includes(p.id) ? 3 : 0) }));
     const proposed = [...scored.filter((x) => x.score > 0).sort((a, b) => b.score - a.score), ...scored.filter((x) => x.score === 0).sort((a, b) => (votes[b.p.id] || 0) - (votes[a.p.id] || 0))].slice(0, 5)
       .map(({ p }) => ({ id: p.id, name: p.name, indicativePriceUsdc: p.price, status: p.status || "proposed", votes: votes[p.id] || 0 }));
     const id = "req_" + crypto.randomBytes(6).toString("hex");
-    const rec = { id, at: new Date().toISOString(), ...Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v === undefined ? undefined : typeof v === "string" ? v.slice(0, 1500) : JSON.stringify(v).slice(0, 1500)])), matched: matches.map((m) => m.tool), offered: proposed.map((p) => p.id), selected: [] };
+    const rec = { id, at: new Date().toISOString(), detailed, ...Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v === undefined ? undefined : typeof v === "string" ? v.slice(0, 1500) : JSON.stringify(v).slice(0, 1500)])), matched: matches.map((m) => m.tool), offered: proposed.map((p) => p.id), selected: [] };
     byId.set(id, rec);
     store.push(rec); if (store.length > 2000) byId.delete(store.shift().id);
     console.log("TOOL_REQUEST", JSON.stringify(rec));
@@ -44,7 +45,7 @@ export function makeRequestHandlers({ tools, base }) {
       const r = await fetch(`https://api.github.com/repos/${repo}/issues`, { method: "POST", signal: AbortSignal.timeout(8000), headers: { authorization: `Bearer ${process.env.REQUESTS_GH_TOKEN}`, accept: "application/vnd.github+json", "user-agent": "lumenworks" }, body: JSON.stringify({ title: `[agent-checkin] ${String(f.needed_capability || f.current_task || f.goal).slice(0, 80)}`, body: "```json\n" + JSON.stringify({ ...rec, contact_optional: rec.contact_optional ? "(provided, withheld from public issue)" : undefined }, null, 2) + "\n```", labels: ["tool-request"] }) }).catch(() => null);
       if (r?.ok) durable = "github-issue";
     }
-    return { id, received: true, storage: durable, existingTools: matches, proposedTools: proposed,
+    return { id, received: true, kind: detailed ? "detailed-report" : "free-summary", storage: durable, advisory: adv.advice, existingTools: matches, proposedTools: proposed,
       next: { select: `POST ${base}/v1/request-tool/${id}/select {"ids":["p_..."]} or MCP select_suggested_tools {request_id, ids}`, status: `GET ${base}/v1/request-tool/${id} or MCP check_request_status` },
       note: "Existing tools work now. Proposed tools are NOT built yet: pick the ones you'd actually pay for; the most-picked get built as paid x402 endpoints and this request's status will show them as live.", free: true };
   }
