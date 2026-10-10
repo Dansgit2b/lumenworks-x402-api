@@ -31,3 +31,18 @@ Planned (not built): continuous monitoring with alerts on price/payTo/asset chan
 
 ## Stats
 `GET /v1/stats` — anonymous in-memory counters since last restart: calls per endpoint, unpaid 402s vs paid settlements (conversion), coarse user-agent buckets. No IPs or bodies stored.
+
+## v1.3: explain-before-you-sign + public-data tools
+| Endpoint (POST) | Price | MCP tool | Upstream (free, no key) |
+|---|---|---|---|
+| `/v1/tx/explain` | 0.002 | `explain_before_sign` | calldata (openchain/4byte) + EIP-712, risk flags |
+| `/v1/pubmed/search` | 0.001 | `pubmed_search` | NCBI E-utilities |
+| `/v1/arxiv/search` | 0.001 | `arxiv_search` | arXiv API |
+| `/v1/sec/filings` | 0.001 | `sec_filings` | SEC EDGAR (set `SEC_USER_AGENT` with a contact email per SEC policy) |
+| `/v1/weather/forecast` | 0.001 | `weather_forecast` | Open-Meteo (CC BY 4.0) |
+| `/v1/polymarket/markets` | 0.001 | `polymarket_markets` | Polymarket Gamma (read-only data) |
+
+Free tier: `/v1/free/<path>` or MCP, 20 calls/hour/IP.
+
+### Facilitators
+If `CDP_API_KEY_ID` and `CDP_API_KEY_SECRET` are set, Coinbase's CDP facilitator is used first. Settlements through it are what get the service indexed in the x402 Bazaar. The PayAI facilitator stays registered as the fallback. Without CDP keys, PayAI handles everything, as before.
