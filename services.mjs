@@ -13,17 +13,17 @@ const privateIp = (ip) => {
   if (net.isIPv4(ip)) { const [a, b] = ip.split(".").map(Number); return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) || a >= 224; }
   const l = ip.toLowerCase(); return l === "::1" || l === "::" || l.startsWith("fc") || l.startsWith("fd") || l.startsWith("fe80") || l.startsWith("::ffff:") && privateIp(l.slice(7));
 };
-async function safeFetch(raw, maxBytes = 3_000_000) {
+export async function safeFetch(raw, maxBytes = 3_000_000, method = "GET") {
   let url; try { url = new URL(raw); } catch { throw bad("Invalid url"); }
   for (let hop = 0; hop < 5; hop++) {
     if (!/^https?:$/.test(url.protocol)) throw bad("Only http(s) URLs");
     const addrs = net.isIP(url.hostname) ? [url.hostname] : (await dns.lookup(url.hostname, { all: true }).catch(() => { throw bad("DNS lookup failed"); })).map((x) => x.address);
     if (addrs.some(privateIp)) throw bad("Private/internal addresses are not allowed");
-    const res = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(12000), headers: { "user-agent": "LumenWorksFetcher/1.0 (+https://lumenworks-x402-decoder.onrender.com)", accept: "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.5" } });
+    const res = await fetch(url, { method, ...(method === "POST" ? { body: "{}" } : {}), redirect: "manual", signal: AbortSignal.timeout(12000), headers: { "user-agent": "LumenWorksFetcher/1.0 (+https://lumenworks-x402-decoder.onrender.com)", accept: "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.5", ...(method === "POST" ? { "content-type": "application/json" } : {}) } });
     if (res.status >= 300 && res.status < 400 && res.headers.get("location")) { url = new URL(res.headers.get("location"), url); continue; }
     const reader = res.body?.getReader(); const chunks = []; let n = 0;
     while (reader) { const { done, value } = await reader.read(); if (done) break; n += value.length; if (n > maxBytes) { reader.cancel(); break; } chunks.push(value); }
-    return { url: url.href, status: res.status, contentType: res.headers.get("content-type") || "", body: Buffer.concat(chunks).toString("utf8"), truncated: n > maxBytes };
+    return { url: url.href, status: res.status, headers: res.headers, contentType: res.headers.get("content-type") || "", body: Buffer.concat(chunks).toString("utf8"), truncated: n > maxBytes };
   }
   throw bad("Too many redirects");
 }

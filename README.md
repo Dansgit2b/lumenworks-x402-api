@@ -23,3 +23,11 @@ Remote MCP (streamable HTTP, stateless JSON): `https://lumenworks-x402-decoder.o
 
 ## Celo
 When `X402_CELO_API_KEY` (from the x402.celo.org dashboard) is set, every paid route also accepts USA₮ and USDC on Celo (`eip155:42220`), settled through Celo's hosted facilitator at api.x402.celo.org.
+
+## Free x402 payment safety check
+`POST /v1/x402/safety-check` (MCP tool `x402_payment_safety_check`) — deterministic pre-payment check. Body: `{url?, method?, payment_required?, expected_pay_to?, expected_network?, max_price_usdc?, listed_price_usdc?, facilitator_url?, client_config?}`. We fetch the unpaid 402 (SSRF-guarded) and return `ok | review | do_not_pay` with checks: HTTPS/health/latency, payTo validity/checksum/mismatch, unknown asset/network, price vs your cap and the listed price, timeout/replay window, multiple payTo, unknown facilitator, missing spend caps / idempotency in your client config. Nothing is stored; inputs that look like private keys are rejected. 30/hour/IP.
+
+Planned (not built): continuous monitoring with alerts on price/payTo/asset changes. `POST /v1/monitoring/early-access` takes a 1 USDC x402 early-access deposit to signal demand; no delivery date is promised.
+
+## Stats
+`GET /v1/stats` — anonymous in-memory counters since last restart: calls per endpoint, unpaid 402s vs paid settlements (conversion), coarse user-agent buckets. No IPs or bodies stored.
