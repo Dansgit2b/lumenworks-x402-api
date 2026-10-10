@@ -2,12 +2,12 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.Dansgit2b/lumenworks-decoder",
   "title": "Lumen Works Decoder",
-  "description": "x402 pay-per-call agent tools: web\u2192Markdown, URL unfurl, EVM/ENS lookup, domain DNS+RDAP, calldata/E",
+  "description": "x402 agent tools: explain-before-sign, PubMed, arXiv, SEC, weather, Polymarket, web→MD, decoders",
   "repository": {
     "url": "https://github.com/Dansgit2b/lumenworks-x402-api",
     "source": "github"
   },
-  "version": "1.2.0",
+  "version": "1.3.0",
   "remotes": [
     {
       "type": "streamable-http",
