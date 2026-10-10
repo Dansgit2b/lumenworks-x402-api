@@ -23,6 +23,3 @@ Remote MCP (streamable HTTP, stateless JSON): `https://lumenworks-x402-decoder.o
 
 ## Celo
 When `X402_CELO_API_KEY` (from the x402.celo.org dashboard) is set, every paid route also accepts USA₮ and USDC on Celo (`eip155:42220`), settled through Celo's hosted facilitator at api.x402.celo.org.
-
-## Request a tool (free)
-`POST /v1/request-tool` `{task, needed_capability, example_input?, max_price_usdc?, contact_optional?}` or MCP tool `request_a_tool`: returns matching existing tools (how to call them) and a request id. A request box — popular requests get built as paid endpoints. 10/hour/IP; requests that look like they contain keys/tokens (incl. any 32-byte hex) are rejected and not stored. `GET /v1/requests/summary` gives anonymized counts. Storage: in memory + service logs; if `REQUESTS_GH_TOKEN` (fine-scoped, Issues: write on this repo) is set, each request is also filed as a GitHub issue labelled `tool-request` (contact field withheld).

@@ -7,7 +7,6 @@ import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { paymentMiddleware, x402ResourceServer } from "@x402/express";
 import { declareDiscoveryExtension } from "@x402/extensions/bazaar";
 import { lintX402, decodeEip712, decodeCalldata } from "./decoders.mjs";
-import { makeRequestHandlers } from "./requests.mjs";
 import { webMarkdown, webUnfurl, evmAddress, domainLookup } from "./services.mjs";
 const PAY_TO = "0xee9790cB3960952F585379F831a89b4e00B4029A", NETWORK = "eip155:8453", USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const PRICE = process.env.PRICE_ATOMIC || "2000", PRICE_USD = (Number(PRICE) / 1e6).toString();
@@ -34,11 +33,11 @@ const usd = (e) => (Number(e.price || PRICE) / 1e6).toString();
 const routes = Object.fromEntries(Object.entries(EP).map(([p, e]) => [`POST ${p}`, { resource: `${BASE}${p}`, accepts: mkAccepts(e.price), description: e.desc, mimeType: "application/json", serviceName: "Lumen Works", tags: e.tags || ["x402", "eip712", "calldata", "decoder", "ethereum"], extensions: declareDiscoveryExtension({ method: "POST", bodyType: "json", input: e.ex, inputSchema: { properties: {} }, output: { example: {} } }) }]));
 const app = express(); app.disable("x-powered-by"); app.set("trust proxy", 1); app.use(express.json({ limit: "64kb" }));
 app.use(rateLimit({ windowMs: 60_000, limit: 60, standardHeaders: "draft-7", legacyHeaders: false }));
-const discovery = () => ({ name: "Lumen Works Decoder API", author: "Dan (GitHub: Dansgit2b)", description: "Pay-per-call agent utilities: x402/EIP-712/calldata decoders, web page to Markdown, URL unfurl, EVM address/ENS lookup, domain DNS+RDAP.", prices: Object.fromEntries(Object.entries(EP).map(([p, e]) => [p, usd(e)])), network: NETWORK, networks: [NETWORK, ...(CELO_KEY ? [CELO] : [])], celoAssets: CELO_KEY ? ["USAT", "USDC"] : [], mcp: `${BASE}/mcp`, asset: USDC, payTo: PAY_TO, priceUsdc: PRICE_USD, facilitator: facilitator.url, resources: Object.keys(EP).map((p) => `${BASE}${p}`), freeTier: "POST /v1/free/<same path> — 20 calls/hour/IP, no payment", requestATool: `POST ${BASE}/v1/request-tool (free) — describe a capability you need; popular requests get built`, openapi: `${BASE}/openapi.json`, llms: `${BASE}/llms.txt` });
+const discovery = () => ({ name: "Lumen Works Decoder API", author: "Dan (GitHub: Dansgit2b)", description: "Pay-per-call agent utilities: x402/EIP-712/calldata decoders, web page to Markdown, URL unfurl, EVM address/ENS lookup, domain DNS+RDAP.", prices: Object.fromEntries(Object.entries(EP).map(([p, e]) => [p, usd(e)])), network: NETWORK, networks: [NETWORK, ...(CELO_KEY ? [CELO] : [])], celoAssets: CELO_KEY ? ["USAT", "USDC"] : [], mcp: `${BASE}/mcp`, asset: USDC, payTo: PAY_TO, priceUsdc: PRICE_USD, facilitator: facilitator.url, resources: Object.keys(EP).map((p) => `${BASE}${p}`), freeTier: "POST /v1/free/<same path> — 20 calls/hour/IP, no payment", openapi: `${BASE}/openapi.json`, llms: `${BASE}/llms.txt` });
 app.get("/", (_q, r) => r.json(discovery()));
 app.get("/.well-known/x402", (_q, r) => r.json({ version: 1, ...discovery() }));
 app.get("/health", (_q, r) => r.json({ ok: true }));
-app.get("/llms.txt", (_q, r) => r.type("text/plain").send(`# Lumen Works API\n> x402-paid agent utilities (0.001-0.002 USDC/call on Base). Author: Dan (github.com/Dansgit2b).\n\n${Object.entries(EP).map(([p, e]) => `- POST ${BASE}${p} (${usd(e)} USDC) — ${e.desc} Body: ${JSON.stringify(e.ex)}`).join("\n")}\n\nFree tier: POST ${BASE}/v1/free/... (20/hour/IP). Missing a tool? POST ${BASE}/v1/request-tool {task, needed_capability, example_input, max_price_usdc} (free). OpenAPI: ${BASE}/openapi.json\n`));
+app.get("/llms.txt", (_q, r) => r.type("text/plain").send(`# Lumen Works API\n> x402-paid agent utilities (0.001-0.002 USDC/call on Base). Author: Dan (github.com/Dansgit2b).\n\n${Object.entries(EP).map(([p, e]) => `- POST ${BASE}${p} (${usd(e)} USDC) — ${e.desc} Body: ${JSON.stringify(e.ex)}`).join("\n")}\n\nFree tier: POST ${BASE}/v1/free/... (20/hour/IP). OpenAPI: ${BASE}/openapi.json\n`));
 app.get("/openapi.json", (_q, r) => r.json({ openapi: "3.1.0", info: { title: "Lumen Works Decoder API", version: "1.2.0", description: "x402-paid agent utilities. Author Dan (Dansgit2b)." }, servers: [{ url: BASE }], paths: Object.fromEntries(Object.entries(EP).map(([p, e]) => [p, { post: { operationId: p.replace(/\W+/g, "_"), summary: e.desc, "x-payment-info": { price: { mode: "fixed", currency: "USD", amount: usd(e) }, protocols: [{ x402: { network: NETWORK, asset: USDC, payTo: PAY_TO } }] }, requestBody: { content: { "application/json": { schema: { type: "object" }, example: e.ex } } }, responses: { 200: { description: "Decoded" }, 402: { description: "Payment Required (x402 v2)" } } } }])) }));
 const run = (fn) => async (q, r) => { try { r.json(await fn(q.body)); } catch (e) { r.status(e.status || 400).json({ error: e.message, charged: false }); } };
 const freeLimit = rateLimit({ windowMs: 3600_000, limit: 20, standardHeaders: "draft-7", legacyHeaders: false, message: { error: "Free tier exhausted (20/h). Use paid endpoint." } });
@@ -52,12 +51,6 @@ const TOOLS = [
   { name: "domain_lookup", path: "/v1/domain/lookup", description: EP["/v1/domain/lookup"].desc, inputSchema: { type: "object", properties: { domain: { type: "string" } }, required: ["domain"] } },
   { name: "calldata_decode", path: "/v1/calldata/decode", description: EP["/v1/calldata/decode"].desc, inputSchema: { type: "object", properties: { data: { type: "string" }, signature: { type: "string" } }, required: ["data"] } },
 ];
-const RQ = makeRequestHandlers({ base: BASE, tools: TOOLS.map((t) => ({ ...t, price: usd(EP[t.path]) })) });
-const reqLimit = rateLimit({ windowMs: 3600_000, limit: 10, standardHeaders: "draft-7", legacyHeaders: false, message: { error: "Max 10 tool requests/hour/IP" } });
-app.post("/v1/request-tool", reqLimit, run(RQ.requestTool));
-app.get("/v1/requests/summary", (_q, r) => r.json(RQ.summary()));
-const REQ_TOOL = { name: "request_a_tool", description: "FREE. Tell Lumen Works what you're blocked on. Describe your task and the capability you need; get back any existing Lumen Works tools that fit (with how to call them) plus a request id. Popular requests get built as paid x402 endpoints. Never include secrets/keys (requests containing them are rejected).", inputSchema: { type: "object", properties: { task: { type: "string" }, needed_capability: { type: "string" }, example_input: { type: "string" }, max_price_usdc: { type: "number" }, contact_optional: { type: "string" } } } };
-const reqHits = new Map();
 const mcpHits = new Map();
 app.get("/mcp", (_q, r) => r.status(405).json({ error: "Use POST (MCP streamable HTTP, JSON responses)" }));
 app.post("/mcp", async (q, r) => {
@@ -65,11 +58,7 @@ app.post("/mcp", async (q, r) => {
   if (m.id === undefined) return r.status(202).end();
   if (m.method === "initialize") return ok({ protocolVersion: m.params?.protocolVersion || "2025-06-18", capabilities: { tools: {} }, serverInfo: { name: "lumenworks-decoder", version: "1.2.0" }, instructions: "Free tier: 20 tool calls/hour/IP. Beyond that, call the x402-paid HTTP endpoints listed in each error (0.001-0.002 USD/call)." });
   if (m.method === "ping") return ok({});
-  if (m.method === "tools/list") return ok({ tools: [...TOOLS.map(({ path, ...t }) => t), REQ_TOOL] });
-  if (m.method === "tools/call" && m.params?.name === "request_a_tool") {
-    const now = Date.now(), arr = (reqHits.get(q.ip) || []).filter((x) => now - x < 3600_000); if (arr.length >= 10) return ok({ isError: true, content: [{ type: "text", text: "Max 10 tool requests/hour" }] }); arr.push(now); reqHits.set(q.ip, arr);
-    try { const out = await RQ.requestTool(m.params?.arguments || {}); return ok({ content: [{ type: "text", text: JSON.stringify(out, null, 2) }], structuredContent: out }); } catch (e) { return ok({ isError: true, content: [{ type: "text", text: e.message }] }); }
-  }
+  if (m.method === "tools/list") return ok({ tools: TOOLS.map(({ path, ...t }) => t) });
   if (m.method === "tools/call") {
     const t = TOOLS.find((x) => x.name === m.params?.name); if (!t) return fail(-32602, "Unknown tool");
     const ip = q.ip, now = Date.now(), arr = (mcpHits.get(ip) || []).filter((x) => now - x < 3600_000);
