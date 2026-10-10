@@ -57,6 +57,26 @@ const discovery = () => ({ name: "Lumen Works Agent API", author: "Dan (GitHub: 
   services: [{ name: PRESIGN, description: EP["/v1/tx/explain"].desc, disclaimer: DISCLAIMER, mcp: `${BASE}/mcp/presign`, accuracy: "https://github.com/Dansgit2b/lumenworks-x402-api/blob/master/ACCURACY.md", resources: svc(PRESIGN) }, { name: UTIL, description: "Pay-per-call agent utilities: decoders, web reader, lookups and research data.", mcp: `${BASE}/mcp`, resources: svc(UTIL) }], prices: Object.fromEntries(Object.entries(EP).map(([p, e]) => [p, usd(e)])), network: NETWORK, networks: [NETWORK, ...(CELO_KEY ? [CELO] : [])], celoAssets: CELO_KEY ? ["USAT", "USDC"] : [], mcp: `${BASE}/mcp`, asset: USDC, payTo: PAY_TO, priceUsdc: PRICE_USD, facilitator: cdpFac ? cdpFac.url : facilitator.url, facilitators: [...(cdpFac ? [cdpFac.url] : []), facilitator.url], resources: Object.keys(EP).map((p) => `${BASE}${p}`), freeTier: "POST /v1/free/<same path> — 20 calls/hour/IP, no payment", monitoringWaitlist: `POST ${BASE}/v1/monitoring/waitlist (free)`, x402SafetyCheck: `POST ${BASE}/v1/x402/safety-check (free)`, stats: `${BASE}/v1/stats`, openapi: `${BASE}/openapi.json`, llms: `${BASE}/llms.txt` });
 app.get("/", (_q, r) => r.json(discovery()));
 app.get("/.well-known/x402", (_q, r) => r.json({ version: 1, ...discovery() }));
+// ERC-8004 registration file (Celo mainnet Identity Registry 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432, agentId 9889, owner/agentWallet 0x97db…2A51)
+const AGENT_WALLET = "0x97db0F94B3d1ffBbee543FE4430b4D65FBCa2A51";
+app.get("/.well-known/agent-registration.json", (_q, r) => r.json({
+  type: "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+  name: "Lumen Works Agent API",
+  description: "x402 pay-per-call tools for AI agents: Lumen Pre-Sign Check (verdict before signing any EVM tx or EIP-712 message) and Lumen Agent Utilities (decoders, web reader, lookups, research data). 13 tools, $0.001-0.002 per call in USA₮/USDC on Celo via x402.celo.org or USDC on Base. Informational, not a security guarantee.",
+  image: "https://github.com/Dansgit2b.png",
+  services: [
+    { name: "web", endpoint: BASE },
+    { name: "MCP", endpoint: `${BASE}/mcp`, version: "2025-06-18" },
+    { name: "MCP", endpoint: `${BASE}/mcp/presign`, version: "2025-06-18" },
+    { name: "x402", endpoint: `${BASE}/.well-known/x402` },
+    { name: "OpenAPI", endpoint: `${BASE}/openapi.json` },
+    { name: "agentWallet", endpoint: `eip155:42220:${AGENT_WALLET}` },
+  ],
+  x402Support: true,
+  active: true,
+  registrations: [{ agentId: 9889, agentRegistry: "eip155:42220:0x8004A169FB4a3325136EB29fA0ceB6D2e539a432" }],
+  supportedTrust: ["reputation"],
+}));
 app.get("/health", (_q, r) => r.json({ ok: true }));
 app.get("/llms.txt", (_q, r) => r.type("text/plain").send(`# Lumen Works Agent API\n> Lumen Pre-Sign Check (POST /v1/tx/explain, $0.002): call before signing; abort on do_not_sign_unless_intended. ${DISCLAIMER}\n> Lumen Agent Utilities: x402-paid tools (0.001-0.002 USDC/call on Base). GET/HEAD any paid path for a free 402 quote. Not charged when a call errors. Author: Dan (github.com/Dansgit2b).\n\n${Object.entries(EP).map(([p, e]) => `- POST ${BASE}${p} (${usd(e)} USDC) — ${e.desc} Body: ${JSON.stringify(e.ex)}`).join("\n")}\n\nFree tier: POST ${BASE}/v1/free/... (20/hour/IP). FREE x402 payment safety check: POST ${BASE}/v1/x402/safety-check {url | payment_required, expected_pay_to?, max_price_usdc?, client_config?}. Anonymous stats: ${BASE}/v1/stats. OpenAPI: ${BASE}/openapi.json\n`));
 app.get("/openapi.json", (_q, r) => r.json({ openapi: "3.1.0", info: { title: "Lumen Works Agent API (Lumen Pre-Sign Check + Lumen Agent Utilities)", version: "1.4.0", description: "x402-paid agent tools. Author Dan (Dansgit2b). " + DISCLAIMER, contact: { name: "Dan (Dansgit2b)", url: "https://github.com/Dansgit2b/lumenworks-x402-api" } }, servers: [{ url: BASE }], paths: Object.fromEntries(Object.entries(EP).map(([p, e]) => [p, { post: { operationId: p.replace(/\W+/g, "_"), summary: e.desc, tags: [GROUP(p)], "x-payment-info": { price: { mode: "fixed", currency: "USD", amount: usd(e) }, protocols: [{ x402: { network: NETWORK, asset: USDC, payTo: PAY_TO } }] }, requestBody: { required: true, content: { "application/json": { schema: TOOLS.find((t) => t.path === p).inputSchema, example: EXAMPLES[p]?.input || e.ex } } }, responses: { 200: { description: "OK", content: { "application/json": { example: EXAMPLES[p]?.output || {} } } }, 402: { description: "Payment Required (x402 v2)" } } } }])) }));
