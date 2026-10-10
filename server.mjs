@@ -16,11 +16,17 @@ const EP = {
   "/v1/eip712/decode": { fn: decodeEip712, desc: "Decode EIP-712 typed data: domain separator, signing digest, message, and plain-language risk notes (Permit, Permit2, EIP-3009, unlimited values).", ex: { typedData: { domain: {}, types: {}, primaryType: "Permit", message: {} } } },
   "/v1/calldata/decode": { fn: decodeCalldata, desc: "Decode Ethereum calldata: selector, 4byte/openchain signature lookup, ABI-decoded args for each matching candidate. Optional {signature} override.", ex: { data: "0xa9059cbb..." } },
 };
-const accepts = { scheme: "exact", network: NETWORK, payTo: PAY_TO, price: { amount: PRICE, asset: USDC, extra: { name: "USD Coin", version: "2" } }, maxTimeoutSeconds: 120 };
+const CELO = "eip155:42220", CELO_KEY = process.env.X402_CELO_API_KEY || "";
+const baseAccept = { scheme: "exact", network: NETWORK, payTo: PAY_TO, price: { amount: PRICE, asset: USDC, extra: { name: "USD Coin", version: "2" } }, maxTimeoutSeconds: 120 };
+const celoAccepts = CELO_KEY ? [
+  { scheme: "exact", network: CELO, payTo: PAY_TO, price: { amount: PRICE, asset: "0xD2ab3C9A02DBBAB236BfEC45D1d755DF4267F771", extra: { name: "Tether America USD", version: "1", assetTransferMethod: "eip3009" } }, maxTimeoutSeconds: 120 },
+  { scheme: "exact", network: CELO, payTo: PAY_TO, price: { amount: PRICE, asset: "0xcebA9300f2b948710d2653dD7B07f33A8B32118C", extra: { name: "USDC", version: "2", assetTransferMethod: "eip3009" } }, maxTimeoutSeconds: 120 },
+] : [];
+const accepts = [baseAccept, ...celoAccepts];
 const routes = Object.fromEntries(Object.entries(EP).map(([p, e]) => [`POST ${p}`, { resource: `${BASE}${p}`, accepts, description: e.desc, mimeType: "application/json", serviceName: "Lumen Works Decoder", tags: ["x402", "eip712", "calldata", "decoder", "ethereum"], extensions: declareDiscoveryExtension({ method: "POST", bodyType: "json", input: e.ex, inputSchema: { properties: {} }, output: { example: {} } }) }]));
 const app = express(); app.disable("x-powered-by"); app.set("trust proxy", 1); app.use(express.json({ limit: "64kb" }));
 app.use(rateLimit({ windowMs: 60_000, limit: 60, standardHeaders: "draft-7", legacyHeaders: false }));
-const discovery = () => ({ name: "Lumen Works Decoder API", author: "Dan (GitHub: Dansgit2b)", description: "Pay-per-call decoders for x402 headers, EIP-712 typed data and Ethereum calldata.", network: NETWORK, asset: USDC, payTo: PAY_TO, priceUsdc: PRICE_USD, facilitator: facilitator.url, resources: Object.keys(EP).map((p) => `${BASE}${p}`), freeTier: "POST /v1/free/<same path> — 20 calls/hour/IP, no payment", openapi: `${BASE}/openapi.json`, llms: `${BASE}/llms.txt` });
+const discovery = () => ({ name: "Lumen Works Decoder API", author: "Dan (GitHub: Dansgit2b)", description: "Pay-per-call decoders for x402 headers, EIP-712 typed data and Ethereum calldata.", network: NETWORK, networks: [NETWORK, ...(CELO_KEY ? [CELO] : [])], celoAssets: CELO_KEY ? ["USAT", "USDC"] : [], mcp: `${BASE}/mcp`, asset: USDC, payTo: PAY_TO, priceUsdc: PRICE_USD, facilitator: facilitator.url, resources: Object.keys(EP).map((p) => `${BASE}${p}`), freeTier: "POST /v1/free/<same path> — 20 calls/hour/IP, no payment", openapi: `${BASE}/openapi.json`, llms: `${BASE}/llms.txt` });
 app.get("/", (_q, r) => r.json(discovery()));
 app.get("/.well-known/x402", (_q, r) => r.json({ version: 1, ...discovery() }));
 app.get("/health", (_q, r) => r.json({ ok: true }));
@@ -29,7 +35,31 @@ app.get("/openapi.json", (_q, r) => r.json({ openapi: "3.1.0", info: { title: "L
 const run = (fn) => async (q, r) => { try { r.json(await fn(q.body)); } catch (e) { r.status(e.status || 400).json({ error: e.message, charged: false }); } };
 const freeLimit = rateLimit({ windowMs: 3600_000, limit: 20, standardHeaders: "draft-7", legacyHeaders: false, message: { error: "Free tier exhausted (20/h). Use paid endpoint." } });
 for (const [p, e] of Object.entries(EP)) app.post(`/v1/free${p.slice(3)}`, freeLimit, run(e.fn));
-app.use(paymentMiddleware(routes, new x402ResourceServer(new HTTPFacilitatorClient(facilitator)).register(NETWORK, new ExactEvmScheme())));
+const TOOLS = [
+  { name: "x402_lint", path: "/v1/x402/lint", description: EP["/v1/x402/lint"].desc, inputSchema: { type: "object", properties: { header: { type: "string", description: "base64 x402 header value" }, json: { type: "object" } } } },
+  { name: "eip712_decode", path: "/v1/eip712/decode", description: EP["/v1/eip712/decode"].desc, inputSchema: { type: "object", properties: { typedData: { type: "object" } }, required: ["typedData"] } },
+  { name: "calldata_decode", path: "/v1/calldata/decode", description: EP["/v1/calldata/decode"].desc, inputSchema: { type: "object", properties: { data: { type: "string" }, signature: { type: "string" } }, required: ["data"] } },
+];
+const mcpHits = new Map();
+app.get("/mcp", (_q, r) => r.status(405).json({ error: "Use POST (MCP streamable HTTP, JSON responses)" }));
+app.post("/mcp", async (q, r) => {
+  const m = q.body || {}, id = m.id ?? null, ok = (result) => r.json({ jsonrpc: "2.0", id, result }), fail = (code, message, data) => r.json({ jsonrpc: "2.0", id, error: { code, message, data } });
+  if (m.id === undefined) return r.status(202).end();
+  if (m.method === "initialize") return ok({ protocolVersion: m.params?.protocolVersion || "2025-06-18", capabilities: { tools: {} }, serverInfo: { name: "lumenworks-decoder", version: "1.1.0" }, instructions: "Free tier: 20 tool calls/hour/IP. Beyond that, call the x402-paid HTTP endpoints listed in each error (0.002 USD/call)." });
+  if (m.method === "ping") return ok({});
+  if (m.method === "tools/list") return ok({ tools: TOOLS.map(({ path, ...t }) => t) });
+  if (m.method === "tools/call") {
+    const t = TOOLS.find((x) => x.name === m.params?.name); if (!t) return fail(-32602, "Unknown tool");
+    const ip = q.ip, now = Date.now(), arr = (mcpHits.get(ip) || []).filter((x) => now - x < 3600_000);
+    const paidHeader = q.get("payment-signature");
+    if (arr.length >= 20 && !paidHeader) return ok({ isError: true, content: [{ type: "text", text: `Free tier exhausted (20/hour). Pay per call via x402: POST ${BASE}${t.path} with the same JSON arguments (0.002 USD, Base USDC${CELO_KEY ? " or Celo USAT/USDC" : ""}).` }], structuredContent: { x402: { resource: `${BASE}${t.path}`, accepts } } });
+    arr.push(now); mcpHits.set(ip, arr);
+    try { const out = await EP[t.path].fn(m.params?.arguments || {}); return ok({ content: [{ type: "text", text: JSON.stringify(out, null, 2) }], structuredContent: out }); }
+    catch (e) { return ok({ isError: true, content: [{ type: "text", text: e.message }] }); }
+  }
+  return fail(-32601, "Method not found");
+});
+app.use(paymentMiddleware(routes, new x402ResourceServer([new HTTPFacilitatorClient(facilitator), ...(CELO_KEY ? [new HTTPFacilitatorClient({ url: "https://api.x402.celo.org", createAuthHeaders: async () => { const h = { "X-API-Key": CELO_KEY }; return { verify: h, settle: h, supported: h }; } })] : [])]).register(NETWORK, new ExactEvmScheme()).register(CELO, new ExactEvmScheme())));
 for (const [p, e] of Object.entries(EP)) app.post(p, run(e.fn));
 app.use((_q, r) => r.status(404).json({ error: "Not found" }));
 app.listen(PORT, process.env.HOST || "0.0.0.0", () => console.log("listening", PORT, BASE));
