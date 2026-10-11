@@ -47,7 +47,7 @@
    "valueWei": "0",
    "risk": "high",
    "verdict": "do_not_sign_unless_intended",
-   "disclaimer": "Informational, not a security guarantee. looks_ok does not mean safe. No simulation, no on-chain state (proxy implementations, spender code, balances) is checked."
+   "disclaimer": "Informational, not a security guarantee; looks_ok does not mean safe; no simulation. No on-chain state (proxy implementations, spender code, balances) is checked."
   }
  },
  "/v1/calldata/decode": {

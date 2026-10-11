@@ -55,6 +55,8 @@ export async function explainBeforeSign(input = {}) {
   }
   const rank = { high: 3, medium: 2, low: 1 }, worst = Math.max(0, ...flags.map((f) => rank[f.level]));
   out.risk = ["none", "low", "medium", "high"][worst]; out.verdict = worst >= 3 ? "do_not_sign_unless_intended" : worst === 2 ? "review" : "looks_ok";
-  out.disclaimer = "Informational, not a security guarantee. looks_ok does not mean safe. No simulation, no on-chain state (proxy implementations, spender code, balances) is checked.";
+  out.disclaimer = "Informational, not a security guarantee; looks_ok does not mean safe; no simulation. No on-chain state (proxy implementations, spender code, balances) is checked.";
+  out.security_guarantee = false;
+  if (out.verdict === "looks_ok") out.verdict_note = "looks_ok means no known risk pattern matched; it does not mean the transaction is safe.";
   return out;
 }
